@@ -1,0 +1,52 @@
+{
+    "files.associations": {
+        "array": "cpp",
+        "light": "cpp",
+        "primitiveset": "cpp",
+        "shader": "cpp",
+        "texture": "cpp",
+        "uniform": "cpp",
+        "*.ipp": "cpp",
+        "string_view": "cpp",
+        "mixinvector": "cpp",
+        "polytope": "cpp",
+        "vertexarraystate": "cpp",
+        "buffered_value": "cpp",
+        "fast_back_stack": "cpp",
+        "map": "cpp",
+        "state": "cpp",
+        "program": "cpp"
+    },
+    "python.autoComplete.extraPaths": [
+        "/home/jean-michel/ros/workspaces/humble_ws/install/sound_play/local/lib/python3.10/dist-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/build/norlabcontrollib",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/norlabcontrollib/lib/python3.10/site-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/norlab_icp_mapper_ros/local/lib/python3.10/dist-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/norlab_controllers_wrapper/local/lib/python3.10/dist-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/build/norlab_controllers_inspector",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/norlab_controllers_inspector/lib/python3.10/site-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/norlab_controllers_msgs/local/lib/python3.10/dist-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/kindr_msgs/local/lib/python3.10/dist-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/build/custom_ros_tools",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/custom_ros_tools/lib/python3.10/site-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/audio_common_msgs/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/jean-michel/ros/workspaces/humble_ws/install/sound_play/local/lib/python3.10/dist-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/build/norlabcontrollib",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/norlabcontrollib/lib/python3.10/site-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/norlab_icp_mapper_ros/local/lib/python3.10/dist-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/norlab_controllers_wrapper/local/lib/python3.10/dist-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/build/norlab_controllers_inspector",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/norlab_controllers_inspector/lib/python3.10/site-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/norlab_controllers_msgs/local/lib/python3.10/dist-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/kindr_msgs/local/lib/python3.10/dist-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/build/custom_ros_tools",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/custom_ros_tools/lib/python3.10/site-packages",
+        "/home/jean-michel/ros/workspaces/humble_ws/install/audio_common_msgs/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}

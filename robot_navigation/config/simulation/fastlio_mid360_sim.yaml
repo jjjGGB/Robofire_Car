@@ -1,0 +1,59 @@
+/**:
+    ros__parameters:
+        feature_extract_enable: false
+        # 仿真环境下增大降采样率以减轻 CPU 负载（elevation_mapping 共存场景）
+        # 不影响 TF 精度，仅影响 FAST-LIO 内部地图分辨率
+        point_filter_num: 5
+        max_iteration: 3
+        filter_size_surf: 0.5
+        filter_size_map: 0.5
+        # 缩小地图范围，显著减少内存占用（原 1000m 远超仿真需要）
+        cube_side_length: 200.0
+        runtime_pos_log_enable: false
+        map_file_path: "src/robot_navigation/PCD/test.pcd"
+
+        common:
+            lid_topic:  "/livox/lidar"
+            imu_topic:  "/livox/imu"
+            odom_frame: "odom"            # TF parent frame for odometry
+            body_frame: "base_footprint"  # TF child frame — 匹配 URDF 根节点,
+                                          # robot_state_publisher 再接续 base_footprint→base_link
+            time_sync_en: false         # ONLY turn on when external time synchronization is really not possible
+            time_offset_lidar_to_imu: 0.0 # Time offset between lidar and IMU calibrated by other algorithms, e.g. LI-Init (can be found in README).
+                                        # This param will take effect no matter what time_sync_en is. So if the time offset is not known exactly, please set as 0.0
+
+        preprocess:
+            lidar_type: 1                # 1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR, 4 for any other pointcloud input
+            scan_line:  4
+            blind: 0.5
+            timestamp_unit: 3
+            scan_rate: 10
+
+        mapping:
+            acc_cov: 0.1
+            gyr_cov: 0.1
+            b_acc_cov: 0.001
+            b_gyr_cov: 0.001
+            fov_degree:    360.0
+            det_range:     100.0
+            extrinsic_est_en:  false      # true: enable the online estimation of IMU-LiDAR extrinsic
+            extrinsic_T: [ 0.0, 0.0, 0.05 ] # Simulation
+            extrinsic_R: [1., 0., 0.,
+                          0., 1., 0.,
+                          0., 0., 1.]
+
+        publish:
+            path_en: true                # true: publish Path
+            effect_map_en: false         # true: publish Effects
+            # 禁用地图点云发布: 累积的全局点云占大量 CPU/内存，
+            # 且导航系统不依赖此输出（ground_segmentation 直接订阅 /livox/lidar_PointCloud2）
+            map_en: false
+            # 禁用扫描点云发布: 导航链路中无节点订阅 FAST-LIO 的 cloud_registered 话题
+            scan_publish_en: false
+            dense_publish_en: false
+            scan_bodyframe_pub_en: false
+
+        pcd_save:
+            # 禁用 PCD 保存: 避免内存无限增长（interval=-1 会在一个文件中积累所有帧）
+            pcd_save_en: false
+            interval: -1

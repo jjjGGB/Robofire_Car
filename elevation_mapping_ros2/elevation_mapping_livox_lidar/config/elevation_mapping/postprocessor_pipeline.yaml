@@ -1,0 +1,94 @@
+# ============================================================================
+# 高程图后处理管道配置
+# 定义一系列滤波器，用于增强地图质量和提取有用信息
+# ============================================================================
+
+elevation_mapping:
+  ros__parameters:
+
+    postprocessor_pipeline:
+
+      # ========================================================================
+      # 滤波器 1: 孔洞填充（Inpainting）
+      # ========================================================================
+      # 使用 OpenCV 的图像修复算法填充地图中的空洞
+      # 适用于激光雷达遮挡导致的小范围数据缺失
+      filter1:
+        name: inpaint
+        type: gridMapCv/InpaintFilter
+        params:
+          # 输入层：原始高度数据
+          input_layer: elevation
+          # 输出层：修复后的高度数据
+          output_layer: elevation_inpainted
+          # 修复半径（单位：米）
+          # 决定填充范围，值越大填充越多空洞，但可能引入伪影
+          radius: 0.05
+
+      # ========================================================================
+      # 滤波器 2: 表面法向量计算
+      # ========================================================================
+      # 计算每个栅格的表面法向量，用于分析地形坡度
+      filter2:
+        name: surface_normals
+        type: gridMapFilters/NormalVectorsFilter
+        params:
+          # 输入层：使用修复后的高度数据
+          input_layer: elevation_inpainted
+          # 输出层前缀：生成 normal_vectors_x, normal_vectors_y, normal_vectors_z
+          output_layers_prefix: normal_vectors_
+          # 计算半径（单位：米）
+          # 决定法向量计算的局部范围，值越大越平滑
+          radius: 0.1
+          # 法向量正方向轴
+          normal_vector_positive_axis: z
+
+      # ========================================================================
+      # 滤波器 3: 坡度计算
+      # ========================================================================
+      # 从法向量计算坡度角（弧度）
+      # 坡度 = arccos(法向量 Z 分量)
+      filter3:
+        name: slope
+        type: gridMapFilters/MathExpressionFilter
+        params:
+          # 输出层名称
+          output_layer: slope
+          # 数学表达式：计算法向量与垂直方向的夹角
+          # acos(normal_vectors_z) 返回弧度值
+          # 0 = 水平, π/2 ≈ 1.57 = 垂直
+          expression: acos(normal_vectors_z)
+
+      # ========================================================================
+      # 滤波器 4: 表面粗糙度计算（已禁用 — 性能优化）
+      # ========================================================================
+      # SlidingWindowMathExpressionFilter 是管道中最昂贵的滤波器:
+      #   O(cells × window²) ≈ 3600×25 = 90k ops/frame
+      # 仿真环境下禁用以降低 CPU 负载，仅使用坡度评估通行性
+      # 如需启用，取消下方注释并恢复 filter5 中的 roughness 项
+      #
+      # filter4:
+      #   name: roughness
+      #   type: gridMapFilters/SlidingWindowMathExpressionFilter
+      #   params:
+      #     input_layer: elevation_inpainted
+      #     output_layer: roughness
+      #     expression: sqrt(meanOfFinites(elevation_inpainted^2) - meanOfFinites(elevation_inpainted)^2)
+      #     compute_empty_cells: false
+      #     edge_handling: crop
+      #     window_size: 5
+      #     window_length: 0.15
+
+      # ========================================================================
+      # 滤波器 4: 通行性评估（仅基于坡度）
+      # ========================================================================
+      # 使用坡度计算通行性评分
+      # 1.0 = 完全可通行, 0.0 = 不可通行
+      filter4:
+        name: traversability
+        type: gridMapFilters/MathExpressionFilter
+        params:
+          output_layer: traversability
+          # 纯坡度公式：坡度超过 30° (0.523599 rad) → 不可通行
+          # 无粗糙度项，计算成本极低
+          expression: 1.0 - min(1.0, slope / 0.523599)

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>robot_navigation</name>
+  <version>0.0.0</version>
+  <description>Robot navigation package with elevation map integration</description>
+  <maintainer email="lihanchen2004@163.com">Lihan Chen</maintainer>
+  <license>MIT</license>
+  <author email="lihanchen2004@163.com">Lihan Chen</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- elevation_to_costmap_node 依赖 -->
+  <depend>rclcpp</depend>
+  <depend>nav_msgs</depend>
+  <depend>grid_map_msgs</depend>
+  <depend>grid_map_core</depend>
+  <depend>grid_map_ros</depend>
+  <depend>grid_map_costmap_2d</depend>
+  <depend>nav2_costmap_2d</depend>
+
+  <exec_depend>rviz2</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -1,0 +1,18 @@
+material Terrain/DEMGray
+{
+  technique
+  {
+    pass
+    {
+      lighting off
+
+      # DEM风格浅灰（你截图那种）
+      ambient  0.90 0.90 0.90 1
+      diffuse  0.90 0.90 0.90 1
+      emissive 0.90 0.90 0.90 1
+
+      specular 0 0 0 1
+    }
+  }
+}
+

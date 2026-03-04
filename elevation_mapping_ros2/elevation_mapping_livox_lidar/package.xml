@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>elevation_mapping_livox_lidar</name>
+  <version>0.7.4</version>
+  <description>Demonstrations for the elevation mapping framework.</description>
+  <maintainer email="mwulf@anybotics.com">Maximilian Wulf</maintainer>
+  <maintainer email="ynava@anybotics.com">Yoshua Nava</maintainer>
+  <license>BSD</license>
+  <url type="website">http://github.com/anybotics/elevation_mapping</url>
+  <url type="bugtracker">http://github.com/anybotics/elevation_mapping/issues</url>
+  <author email="pfankhauser@anybotics.com">Péter Fankhauser</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>elevation_mapping</depend>
+  <depend>grid_map_rviz_plugin</depend>
+
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>grid_map_visualization</exec_depend>
+  <exec_depend>pcl_ros</exec_depend>
+  <exec_depend>point_cloud_io</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>turtlebot3_gazebo</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>
