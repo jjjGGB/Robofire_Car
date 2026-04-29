@@ -6,7 +6,7 @@ amcl:
     alpha3: 0.2
     alpha4: 0.2
     alpha5: 0.2
-    base_frame_id: "base_link"
+    base_frame_id: "base_footprint"
     beam_skip_distance: 0.5
     beam_skip_error_threshold: 0.9
     beam_skip_threshold: 0.3
@@ -54,7 +54,7 @@ bt_navigator:
     use_sim_time: True
     global_frame: map
     robot_base_frame: base_link
-    odom_topic: /Odometry
+    odom_topic: /odom
     bt_loop_duration: 10
     default_server_timeout: 20
     plugin_lib_names:
@@ -127,10 +127,10 @@ controller_server:
       vx_std: 0.2                       # x方向速度采样标准差
       vy_std: 0.2                       # y方向速度采样标准差 (全向机器人)
       wz_std: 0.4                       # 角速度采样标准差
-      vx_max: 3.0                       # 最大x方向速度 (m/s)
-      vx_min: -3.0                      # 最小x方向速度 (后退)
-      vy_max: 3.0                       # 最大y方向速度 (全向机器人)
-      wz_max: 6.0                       # 最大角速度 (rad/s)
+      vx_max: 4.0                       # 最大x方向速度 (m/s)
+      vx_min: -4.0                      # 最小x方向速度 (后退)
+      vy_max: 4.0                       # 最大y方向速度 (全向机器人)
+      wz_max: 8.0                       # 最大角速度 (rad/s)
       iteration_count: 1                # 每次控制周期的迭代次数
       prune_distance: 1.7               # 路径裁剪距离
       transform_tolerance: 0.5          # TF变换容差（仿真环境增加容差）
@@ -389,11 +389,11 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [2.0, 2.0, 3.0]
-    min_velocity: [-2.0, -2.0, -3.0]
+    max_velocity: [4.0, 4.0, 8.0]
+    min_velocity: [-4.0, -4.0, -8.0]
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
-    max_accel: [4.0, 4.0, 6.0]
-    max_decel: [-4.0, -4.0, -6.0]
-    odom_topic: "Odometry"
+    max_accel: [8.0, 8.0, 12.0]
+    max_decel: [-8.0, -8.0, -12.0]
+    odom_topic: "odom"
     odom_duration: 0.1

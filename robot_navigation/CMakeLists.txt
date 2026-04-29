@@ -50,6 +50,7 @@ install(DIRECTORY launch config map PCD rviz
 install(PROGRAMS
   scripts/pointcloud_throttle.py
   scripts/amcl_nomotion_trigger.py
+  scripts/sim_odom_bridge.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

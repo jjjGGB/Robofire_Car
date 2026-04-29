@@ -32,15 +32,19 @@ def generate_launch_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(launch_file_dir, 'robot_spawn.launch.py')
-                )
+                ),
+                launch_arguments={'scale_factor': LaunchConfiguration('scale_factor')}.items(),
             )
         ]
     )
 
 
+
     # ========== 构建Launch描述 ==========
     return LaunchDescription([
+        DeclareLaunchArgument('scale_factor', default_value='0.2',
+                              description='Uniform vehicle scale factor'),
         launch_empty_world,    # 先启动世界环境
         launch_robot_spawn,    # 延迟后生成机器人
-
+        #launch_robot2_spawn,
     ])

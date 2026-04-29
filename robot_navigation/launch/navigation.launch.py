@@ -1,10 +1,9 @@
 import os
-import yaml
 
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -14,7 +13,7 @@ from launch.conditions import IfCondition
 def generate_launch_description():
     # Get the launch directory
     robot_navigation_dir = get_package_share_directory('robot_navigation')
-    navigation2_launch_dir = os.path.join(get_package_share_directory('rm_navigation'), 'launch')
+    navigation2_launch_dir = os.path.join(get_package_share_directory('nav2_wrapper'), 'launch')
 
     # Create the launch configuration variables
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -22,30 +21,27 @@ def generate_launch_description():
     use_nav_rviz = LaunchConfiguration('nav_rviz')
 
     # ========================== Parameters Path ==========================
-    # Ground segmentation parameters
-    segmentation_params = os.path.join(
-        robot_navigation_dir, 'config', 'simulation', 'segmentation_sim.yaml')
 
     # FAST_LIO parameters
     fastlio_mid360_params = os.path.join(
-        robot_navigation_dir, 'config', 'simulation', 'fastlio_mid360_sim.yaml')
+        robot_navigation_dir, 'config', 'fastlio_mid360.yaml')
     fastlio_rviz_cfg_dir = os.path.join(
         robot_navigation_dir, 'rviz', 'fastlio.rviz')
 
     # Navigation2 parameters
     nav2_map_dir = os.path.join(robot_navigation_dir, 'map', 'grid_map.yaml')
     nav2_params_file_dir = os.path.join(
-        robot_navigation_dir, 'config', 'simulation', 'nav2_params_sim.yaml')
+        robot_navigation_dir, 'config', 'nav2_params.yaml')
 
-    # base_link -> livox_frame transform (from measurement_params_sim.yaml)
-    base_link2livox_xyz = [0.12, 0.0, 0.175]
-    base_link2livox_rpy = [0.0, 0.0, 0.0]
-
+########################## linefit_ground_segementation parameters start ##########################
+    segmentation_params = os.path.join(robot_navigation_dir, 'config', 'reality', 'segmentation_real.yaml')
+    ########################## linefit_ground_segementation parameters end ############################
     # ========================== Launch Arguments ==========================
     declare_use_sim_time_cmd = DeclareLaunchArgument(
         'use_sim_time',
-        default_value='True',
+        default_value='false',
         description='Use simulation (Gazebo) clock if true')
+
 
     declare_use_lio_rviz_cmd = DeclareLaunchArgument(
         'lio_rviz',
@@ -57,26 +53,8 @@ def generate_launch_description():
         default_value='True',
         description='Visualize navigation2 if true')
 
-    # ========================== TF Static Transforms ==========================
+ 
 
-    # Static TF: base_link -> livox_frame
-    # FAST-LIO publishes odom -> base_link, this provides base_link -> livox_frame
-    tf_base_link_to_livox = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='base_link_to_livox_tf',
-        parameters=[{'use_sim_time': use_sim_time}],
-        arguments=[
-            '--x', str(base_link2livox_xyz[0]),
-            '--y', str(base_link2livox_xyz[1]),
-            '--z', str(base_link2livox_xyz[2]),
-            '--roll', str(base_link2livox_rpy[0]),
-            '--pitch', str(base_link2livox_rpy[1]),
-            '--yaw', str(base_link2livox_rpy[2]),
-            '--frame-id', 'base_link',
-            '--child-frame-id', 'livox_frame'
-        ]
-    )
 
     # ========================== Sensor Processing Nodes ==========================
 
@@ -140,7 +118,31 @@ def generate_launch_description():
         condition=IfCondition(use_lio_rviz)
     )
 
+    odom_to_lidar_odom_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='odom_to_lidar_odom_tf',
+        arguments=[
+            '--frame-id', 'odom',
+            '--child-frame-id', 'lidar_odom'
+        ]
+    )
+
     # ========================== Localization ==========================
+
+    # Force one AMCL update after initial pose when the robot is stationary.
+    amcl_nomotion_trigger_node = Node(
+        package='robot_navigation',
+        executable='amcl_nomotion_trigger.py',
+        name='amcl_nomotion_trigger',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'delay_sec': 1.0,
+            'trigger_count': 3,
+        }]
+    )
+
 
     # Map server (lifecycle-managed, provides /map to AMCL)
     # Each launch file creates its own lifecycle_manager_localization,
@@ -188,22 +190,20 @@ def generate_launch_description():
     ld.add_action(declare_use_lio_rviz_cmd)
     ld.add_action(declare_nav_rviz_cmd)
 
-    # TF transforms (must be first)
-    ld.add_action(tf_base_link_to_livox)       # 1. base_link -> livox_frame (static)
-
+   
     # Sensor processing
+    ld.add_action(odom_to_lidar_odom_tf)          # 1. Static odom -> lidar_odom
+    ld.add_action(bringup_fastlio_node)           # 2. FAST_LIO (lidar_odom -> base_footprint)
+    ld.add_action(bringup_fastlio_rviz)           # Optional FAST_LIO RViz
     ld.add_action(bringup_ground_segmentation_node)      # 3. Ground segmentation
     ld.add_action(bringup_pointcloud_to_laserscan_node)  # 4. Pointcloud to laserscan
 
-    # Odometry
-    ld.add_action(bringup_fastlio_node)        # 5. FAST_LIO (lidar_odom -> livox_frame)
-    ld.add_action(bringup_fastlio_rviz)        # 6. FAST_LIO RViz (optional)
-
     # Localization
-    ld.add_action(start_map_server)            # 7. Map server
-    ld.add_action(start_amcl_localization)     # 8. AMCL (map -> odom)
+    ld.add_action(start_map_server)            # 5. Map server
+    ld.add_action(start_amcl_localization)     # 6. AMCL (map -> odom)
+    ld.add_action(amcl_nomotion_trigger_node)  # 7. Trigger initial AMCL update when stationary
 
     # Navigation
-    ld.add_action(start_navigation2)           # 9. Navigation2 stack
+    ld.add_action(start_navigation2)           # 8. Navigation2 stack
 
     return ld

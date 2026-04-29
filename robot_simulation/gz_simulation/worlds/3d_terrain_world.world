@@ -76,7 +76,7 @@
     <scene>
       <ambient>0.4 0.4 0.4 1</ambient>
       <background>0.7 0.7 0.7 1</background>
-      <shadows>1</shadows>
+      <shadows>false</shadows>
     </scene>
     <audio>
       <device>default</device>
@@ -127,15 +127,6 @@
               <size>15 15 1</size>
               <pos>0 0 0</pos>
               <sampling>2</sampling>
-              <texture>
-                <size>10</size>
-                <diffuse>__default__</diffuse>
-                <normal>__default__</normal>
-              </texture>
-              <blend>
-                <min_height>0</min_height>
-                <fade_dist>0</fade_dist>
-              </blend>
             </heightmap>
           </geometry>
           <material>

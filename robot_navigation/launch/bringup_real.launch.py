@@ -14,7 +14,7 @@ from launch.conditions import LaunchConfigurationEquals, LaunchConfigurationNotE
 def generate_launch_description():
     # Get the launch directory
     robot_navigation_dir = get_package_share_directory('robot_navigation')
-    navigation2_launch_dir = os.path.join(get_package_share_directory('rm_navigation'), 'launch')
+    navigation2_launch_dir = os.path.join(get_package_share_directory('nav2_wrapper'), 'launch')
 
     # Create the launch configuration variables
     world = LaunchConfiguration('world')

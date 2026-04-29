@@ -37,7 +37,7 @@ Visualization Manager:
         All Enabled: true
         livox_frame:
           Value: true
-        odom:
+        lidar_odom:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -45,7 +45,7 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        odom:
+        lidar_odom:
           livox_frame:
             {}
       Update Interval: 0
@@ -222,7 +222,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
-    Fixed Frame: odom
+    Fixed Frame: lidar_odom
     Frame Rate: 30
   Name: root
   Tools:

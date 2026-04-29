@@ -15,7 +15,7 @@
         common:
             lid_topic:  "/livox/lidar"
             imu_topic:  "/livox/imu"
-            odom_frame: "odom"            # TF parent frame for odometry
+            odom_frame: "lidar_odom"            # TF parent frame for odometry
             body_frame: "base_footprint"  # TF child frame — 匹配 URDF 根节点,
                                           # robot_state_publisher 再接续 base_footprint→base_link
             time_sync_en: false         # ONLY turn on when external time synchronization is really not possible
