@@ -58,7 +58,10 @@ float turn_on_robot::Odom_Trans(uint8_t Data_High, uint8_t Data_Low)
  */
 void turn_on_robot::Cmd_Vel_Callback(const geometry_msgs::msg::Twist::SharedPtr twist_aux)
 {
-  Send_Velocity_Command(Sanitize_Command(*twist_aux));
+  // 回调只更新缓存和时间戳，真正的串口发送由 watchdog 周期统一裁决。
+  latest_cmd_vel_ = Sanitize_Command(*twist_aux);
+  last_cmd_time_ = steady_clock_.now();
+  has_cmd_vel_ = true;
 }
 
 geometry_msgs::msg::Twist turn_on_robot::Sanitize_Command(const geometry_msgs::msg::Twist & cmd_vel)
@@ -119,6 +122,50 @@ void turn_on_robot::Send_Velocity_Command(const geometry_msgs::msg::Twist & cmd_
   catch (serial::IOException& e) {
     RCLCPP_ERROR(this->get_logger(), "无法通过串口发送速度指令");
   }
+}
+
+void turn_on_robot::Publish_FailsafeState()
+{
+  // 该话题用于上层监控和日志判断当前是否因指令超时被强制停车。
+  std_msgs::msg::Bool msg;
+  msg.data = failsafe_active_;
+  failsafe_publisher->publish(msg);
+}
+
+void turn_on_robot::Update_Command_Watchdog()
+{
+  const auto now = steady_clock_.now();
+
+  // 控制串口发送频率：正常和超时状态都通过同一个周期出口下发。
+  const double send_period = 1.0 / std::max(1.0, cmd_vel_send_rate_);
+  if ((now - last_cmd_send_time_).seconds() < send_period) {
+    return;
+  }
+  last_cmd_send_time_ = now;
+
+  geometry_msgs::msg::Twist output_cmd;
+
+  // 启动后未收到指令，或最近指令超过安全阈值，均视为上层控制失效。
+  const bool command_expired =
+    !has_cmd_vel_ || ((now - last_cmd_time_).seconds() > cmd_vel_timeout_);
+
+  if (command_expired) {
+    if (!failsafe_active_) {
+      RCLCPP_WARN(this->get_logger(), "cmd_vel watchdog timeout, forcing zero velocity");
+    }
+    failsafe_active_ = true;
+  } else {
+    if (failsafe_active_) {
+      RCLCPP_INFO(this->get_logger(), "cmd_vel watchdog recovered");
+    }
+    failsafe_active_ = false;
+    // 只有新鲜指令才允许进入底盘；否则 output_cmd 保持默认零向量。
+    output_cmd = latest_cmd_vel_;
+  }
+
+  // failsafe_active_ 为 true 时 output_cmd 是零向量，并会持续周期性下发。
+  Send_Velocity_Command(output_cmd);
+  Publish_FailsafeState();
 }
 
 /**
@@ -287,6 +334,7 @@ void turn_on_robot::Control()
       Publish_Voltage();
     }
     rclcpp::spin_some(node_handle); // 处理回调
+    Update_Command_Watchdog(); // 每轮循环都检查上层指令是否超时
   }
 }
 
@@ -296,6 +344,13 @@ void turn_on_robot::Control()
  */
 turn_on_robot::turn_on_robot()
 : rclcpp::Node("chassis_bringup"),
+  steady_clock_(RCL_STEADY_TIME),
+  last_cmd_time_(steady_clock_.now()),
+  last_cmd_send_time_(steady_clock_.now()),
+  has_cmd_vel_(false),
+  failsafe_active_(true),
+  cmd_vel_timeout_(0.5),
+  cmd_vel_send_rate_(50.0),
   max_linear_x_(0.0),
   max_linear_y_(0.0),
   max_angular_z_(0.0)
@@ -319,6 +374,8 @@ turn_on_robot::turn_on_robot()
   this->declare_parameter<double>("odom_y_scale", 1.0);
   this->declare_parameter<double>("odom_z_scale_positive", 1.0);
   this->declare_parameter<double>("odom_z_scale_negative", 1.0);
+  this->declare_parameter<double>("cmd_vel_timeout", 0.5);
+  this->declare_parameter<double>("cmd_vel_send_rate", 50.0);
   // 速度限幅默认关闭；如需启用，将对应参数设置为正数。
   this->declare_parameter<double>("max_linear_x", 0.0);
   this->declare_parameter<double>("max_linear_y", 0.0);
@@ -333,16 +390,28 @@ turn_on_robot::turn_on_robot()
   this->get_parameter("odom_y_scale", odom_y_scale);
   this->get_parameter("odom_z_scale_positive", odom_z_scale_positive);
   this->get_parameter("odom_z_scale_negative", odom_z_scale_negative);
+  this->get_parameter("cmd_vel_timeout", cmd_vel_timeout_);
+  this->get_parameter("cmd_vel_send_rate", cmd_vel_send_rate_);
   this->get_parameter("max_linear_x", max_linear_x_);
   this->get_parameter("max_linear_y", max_linear_y_);
   this->get_parameter("max_angular_z", max_angular_z_);
+  if (cmd_vel_timeout_ <= 0.0) {
+    RCLCPP_WARN(this->get_logger(), "cmd_vel_timeout must be positive, using 0.5s");
+    cmd_vel_timeout_ = 0.5;
+  }
+  if (cmd_vel_send_rate_ <= 0.0) {
+    RCLCPP_WARN(this->get_logger(), "cmd_vel_send_rate must be positive, using 50Hz");
+    cmd_vel_send_rate_ = 50.0;
+  }
 
   // 创建发布者
   odom_publisher = create_publisher<nav_msgs::msg::Odometry>("odom", 2);
   imu_publisher = create_publisher<sensor_msgs::msg::Imu>("imu/data_raw", 2);
   voltage_publisher = create_publisher<std_msgs::msg::Float32>("PowerVoltage", 1);
+  failsafe_publisher = create_publisher<std_msgs::msg::Bool>("cmd_vel_failsafe", 10);
 
   // 创建订阅者
+  // 保持原 /cmd_vel 入口不变；安全接管逻辑在本节点内部完成。
   Cmd_Vel_Sub = create_subscription<geometry_msgs::msg::Twist>(
       "/cmd_vel", 2, std::bind(&turn_on_robot::Cmd_Vel_Callback, this, _1));
     
@@ -370,7 +439,7 @@ turn_on_robot::turn_on_robot()
  */
 turn_on_robot::~turn_on_robot()
 {
-  // 节点正常退出时主动补发一帧零速。
+  // 节点正常退出时主动补发一帧零速；进程崩溃仍需下位机侧 watchdog 兜底。
   geometry_msgs::msg::Twist stop_cmd;
   Send_Velocity_Command(stop_cmd);
   Stm32_Serial.close();

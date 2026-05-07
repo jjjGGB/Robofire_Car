@@ -21,7 +21,6 @@ find_package(ament_cmake REQUIRED)
 #find_package(actionlib_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
-find_package(turtlesim REQUIRED)
 find_package(nav2_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -33,7 +32,6 @@ find_package(tf2_ros REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(std_msgs REQUIRED)                      # CHANGE
 find_package(serial REQUIRED)
-find_package(my_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -70,7 +68,7 @@ set(chassis_bringup_node_SRCS
 )
 
 add_executable(chassis_bringup_node src/chassis_bringup.cpp src/Quaternion_Solution.cpp)
-ament_target_dependencies(chassis_bringup_node tf2_ros tf2 tf2_geometry_msgs rclcpp std_msgs nav_msgs std_srvs sensor_msgs serial my_interfaces turtlesim OpenCV)
+ament_target_dependencies(chassis_bringup_node tf2_ros tf2 tf2_geometry_msgs rclcpp std_msgs nav_msgs std_srvs sensor_msgs serial OpenCV)
 
 install(TARGETS
 chassis_bringup_node

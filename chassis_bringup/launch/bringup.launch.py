@@ -43,7 +43,7 @@ def generate_launch_description():
     with open(robot_urdf_path, 'r', encoding='utf-8') as urdf_file:
         robot_description = urdf_file.read()
 
-    user_config_path = os.path.join(
+    driver_config_path = os.path.join(
         livox_share_dir,
         'config',
         'MID360_config.json',
@@ -57,7 +57,7 @@ def generate_launch_description():
         {'output_data_type': 0},
         {'frame_id': 'livox_frame'},
         {'lvx_file_path': '/home/livox/livox_test.lvx'},
-        {'user_config_path': user_config_path},
+        {'user_config_path': driver_config_path},
         {'cmdline_input_bd_code': 'livox0000000001'},
     ]
 
@@ -78,6 +78,14 @@ def generate_launch_description():
         'base_footprint',
         'base_link',
         'base_footprint_to_base_link_tf',
+    )
+
+    base_link_to_livox_frame_tf = make_static_tf_node(
+        ['0.0', '0.0', '0.0'],
+        ['0.0', '0.0', '0.0'],
+        'base_link',
+        'livox_frame',
+        'base_link_to_livox_frame_tf',
     )
 
     robot_state_publisher = Node(
@@ -115,6 +123,7 @@ def generate_launch_description():
     ld.add_action(declare_use_intra_process_comms)
     ld.add_action(chassis_bringup)
     ld.add_action(base_footprint_to_base_link_tf)
+    ld.add_action(base_link_to_livox_frame_tf)
     ld.add_action(robot_state_publisher)
     ld.add_action(livox_container)
     return ld

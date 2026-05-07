@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /TF1
+        - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 719
   - Class: rviz_common/Selection
@@ -25,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: CloudRegistered
 Visualization Manager:
   Class: ""
   Displays:
@@ -33,22 +35,30 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
         base_footprint:
           Value: true
         base_link:
-          Value: true
-        imu_link:
+          Value: false
+        controller_link:
+          Value: false
+        lidar_odom:
           Value: true
         livox_frame:
-          Value: true
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
-      Show Names: false
+      Show Names: true
       Tree:
-        {}
+        lidar_odom:
+          base_footprint:
+            base_link:
+              controller_link:
+                {}
+              livox_frame:
+                {}
       Update Interval: 0
       Value: true
     - Angle Tolerance: 0.10000000149011612
@@ -121,8 +131,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 2.3537683486938477
-        Min Value: -0.5907976031303406
+        Max Value: 4.454000949859619
+        Min Value: -1.0251214504241943
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -189,8 +199,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 2.4633162021636963
-        Min Value: -0.6278753876686096
+        Max Value: 4.681002140045166
+        Min Value: -1.0846240520477295
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -266,16 +276,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 11.378541946411133
+      Distance: 3.946237325668335
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.008504047989845276
-        Y: -0.0005770106799900532
-        Z: 0.034441977739334106
+        X: -0.051771312952041626
+        Y: -0.47496408224105835
+        Z: 0.03168141096830368
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

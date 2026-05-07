@@ -24,6 +24,7 @@
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>four_wheel_steering_msgs</exec_depend>
+  <exec_depend>small_gicp_relocalization</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -32,7 +32,12 @@ def generate_launch_description():
         'odom_x_scale': 1.0,
         'odom_y_scale': 1.0,
         'odom_z_scale_positive': 1.0,
-        'odom_z_scale_negative': 1.0
+        'odom_z_scale_negative': 1.0,
+        'cmd_vel_timeout': 0.5,
+        'cmd_vel_send_rate': 50.0,
+        'max_linear_x': 0.0,
+        'max_linear_y': 0.0,
+        'max_angular_z': 0.0
     }
     
     remappings=[('imu/data_raw', 'imu/data_board')]

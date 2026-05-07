@@ -14,6 +14,8 @@ def generate_launch_description():
     # Get the launch directory
     robot_navigation_dir = get_package_share_directory('robot_navigation')
     navigation2_launch_dir = os.path.join(get_package_share_directory('nav2_wrapper'), 'launch')
+    small_gicp_launch_dir = os.path.join(
+        get_package_share_directory('small_gicp_relocalization'), 'launch')
 
     # Create the launch configuration variables
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -27,15 +29,15 @@ def generate_launch_description():
         robot_navigation_dir, 'config', 'fastlio_mid360.yaml')
     fastlio_rviz_cfg_dir = os.path.join(
         robot_navigation_dir, 'rviz', 'fastlio.rviz')
+    segmentation_params = os.path.join(
+        robot_navigation_dir, 'config', 'segmentation_real.yaml')
 
     # Navigation2 parameters
     nav2_map_dir = os.path.join(robot_navigation_dir, 'map', 'grid_map.yaml')
     nav2_params_file_dir = os.path.join(
         robot_navigation_dir, 'config', 'nav2_params.yaml')
+    prior_pcd_file = os.path.join(robot_navigation_dir, 'PCD', 'map.pcd')
 
-########################## linefit_ground_segementation parameters start ##########################
-    segmentation_params = os.path.join(robot_navigation_dir, 'config', 'reality', 'segmentation_real.yaml')
-    ########################## linefit_ground_segementation parameters end ############################
     # ========================== Launch Arguments ==========================
     declare_use_sim_time_cmd = DeclareLaunchArgument(
         'use_sim_time',
@@ -79,10 +81,10 @@ def generate_launch_description():
         ],
         parameters=[{
             'use_sim_time': use_sim_time,
-            'target_frame': 'livox_frame',
+            'target_frame': 'base_footprint',
             'transform_tolerance': 0.01,
-            'min_height': -1.0,
-            'max_height': 0.1,
+            'min_height': 0.05,
+            'max_height': 1.5,
             'angle_min': -3.14159,   # -M_PI
             'angle_max': 3.14159,    # M_PI
             'angle_increment': 0.0043,  # M_PI/360.0
@@ -96,7 +98,7 @@ def generate_launch_description():
 
     # ========================== FAST_LIO Odometry ==========================
 
-    # FAST_LIO node (publishes lidar_odom -> livox_frame TF)
+    # FAST_LIO node 
     bringup_fastlio_node = Node(
         package='fast_lio',
         executable='fastlio_mapping',
@@ -130,23 +132,7 @@ def generate_launch_description():
 
     # ========================== Localization ==========================
 
-    # Force one AMCL update after initial pose when the robot is stationary.
-    amcl_nomotion_trigger_node = Node(
-        package='robot_navigation',
-        executable='amcl_nomotion_trigger.py',
-        name='amcl_nomotion_trigger',
-        output='screen',
-        parameters=[{
-            'use_sim_time': use_sim_time,
-            'delay_sec': 1.0,
-            'trigger_count': 3,
-        }]
-    )
-
-
-    # Map server (lifecycle-managed, provides /map to AMCL)
-    # Each launch file creates its own lifecycle_manager_localization,
-    # ROS2 allows same-named nodes to coexist — they manage different node lists independently.
+    # Map server (lifecycle-managed, provides /map to Nav2 costmaps)
     start_map_server = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(navigation2_launch_dir, 'map_server_launch.py')),
@@ -158,13 +144,23 @@ def generate_launch_description():
         }.items()
     )
 
-    # AMCL localization (lifecycle-managed, publishes map -> odom TF)
-    start_amcl_localization = IncludeLaunchDescription(
+
+
+
+    start_small_gicp_localization = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(navigation2_launch_dir, 'localization_amcl_launch.py')),
+            os.path.join(
+                small_gicp_launch_dir, 'small_gicp_relocalization_launch.py')),
         launch_arguments={
             'use_sim_time': use_sim_time,
-            'params_file': nav2_params_file_dir
+            'map_frame': 'map',
+            'odom_frame': 'odom',
+            'base_frame': 'odom',
+            'lidar_frame': 'lidar_odom',
+            'robot_base_frame': 'base_footprint',
+            'prior_pcd_file': prior_pcd_file,
+            'input_cloud_topic': '/cloud_registered',
+            'force_2d_transform': 'true'
         }.items()
     )
 
@@ -199,11 +195,10 @@ def generate_launch_description():
     ld.add_action(bringup_pointcloud_to_laserscan_node)  # 4. Pointcloud to laserscan
 
     # Localization
-    ld.add_action(start_map_server)            # 5. Map server
-    ld.add_action(start_amcl_localization)     # 6. AMCL (map -> odom)
-    ld.add_action(amcl_nomotion_trigger_node)  # 7. Trigger initial AMCL update when stationary
+    ld.add_action(start_map_server)             # 5. Map server
+    ld.add_action(start_small_gicp_localization)  # 6. small_gicp (map -> odom)
 
     # Navigation
-    ld.add_action(start_navigation2)           # 8. Navigation2 stack
+    ld.add_action(start_navigation2)           # 7. Navigation2 stack
 
     return ld

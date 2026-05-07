@@ -309,58 +309,6 @@
     <axis
       xyz="0 0 0" />
   </joint>
-  <link
-    name="livox_frame">
-    <inertial>
-      <origin
-        xyz="0.001964586310461 -3.5789542839353E-06 -0.00020183163277164"
-        rpy="0 0 0" />
-      <mass
-        value="0.0477519163775583" />
-      <inertia
-        ixx="3.38461999766101E-05"
-        ixy="-2.19897141949925E-09"
-        ixz="1.07118468648131E-06"
-        iyy="3.94150415881323E-05"
-        iyz="6.83978165807927E-10"
-        izz="5.60787042136425E-05" />
-    </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://wheeltec_robot_urdf/meshes/mini_mec_robot_meshes/laser.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.376470588235294 0.376470588235294 0.376470588235294 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://wheeltec_robot_urdf/meshes/mini_mec_robot_meshes/laser.STL" />
-      </geometry>
-    </collision>
-  </link>
-  <joint
-    name="laser_joint"
-    type="fixed">
-    <origin
-      xyz="0.0316310367407428 9.05810809802502E-05 0.095024183741431"
-      rpy="0 0 3.14159265358979" />
-    <parent
-      link="base_link" />
-    <child
-      link="livox_frame" />
-    <axis
-      xyz="0 0 0" />
-  </joint>
+
 
 </robot>

@@ -1,16 +1,13 @@
 /**:
     ros__parameters:
         feature_extract_enable: false
-        # 仿真环境下增大降采样率以减轻 CPU 负载（elevation_mapping 共存场景）
-        # 不影响 TF 精度，仅影响 FAST-LIO 内部地图分辨率
-        point_filter_num: 5
+        point_filter_num: 3
         max_iteration: 3
         filter_size_surf: 0.5
         filter_size_map: 0.5
-        # 缩小地图范围，显著减少内存占用（原 1000m 远超仿真需要）
-        cube_side_length: 200.0
+        cube_side_length: 1000.0
         runtime_pos_log_enable: false
-        map_file_path: "src/robot_navigation/PCD/test.pcd"
+        map_file_path: "/home/complexity/robot_ws/src/fast_lio/PCD/map.pcd"
 
         common:
             lid_topic:  "/livox/lidar"
@@ -32,11 +29,11 @@
         mapping:
             acc_cov: 0.1
             gyr_cov: 0.1
-            b_acc_cov: 0.001
-            b_gyr_cov: 0.001
+            b_acc_cov: 0.0001
+            b_gyr_cov: 0.0001
             fov_degree:    360.0
             det_range:     100.0
-            extrinsic_est_en:  true      # true: enable the online estimation of IMU-LiDAR extrinsic
+            extrinsic_est_en:  true      # match the stable standalone fast_lio mid360.yaml
             extrinsic_T: [ -0.011, -0.02329, 0.04412 ]
             extrinsic_R: [   1.0,       0.0,           0.0,
                              0.0,       1.0,         0.0,
@@ -48,10 +45,10 @@
             # 禁用地图点云发布: 累积的全局点云占大量 CPU/内存，
             # 且导航系统不依赖此输出（ground_segmentation 直接订阅 /livox/lidar_PointCloud2）
             map_en: false
-            # 禁用扫描点云发布: 导航链路中无节点订阅 FAST-LIO 的 cloud_registered 话题
-            scan_publish_en: false
+            # small_gicp_relocalization uses /cloud_registered for map -> odom relocalization.
+            scan_publish_en: true
             dense_publish_en: false
-            scan_bodyframe_pub_en: false
+            scan_bodyframe_pub_en: true
 
         pcd_save:
             # 禁用 PCD 保存: 避免内存无限增长（interval=-1 会在一个文件中积累所有帧）
